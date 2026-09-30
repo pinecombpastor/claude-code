@@ -1,0 +1,9 @@
+body { font: 16px/1.4 system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; }
+form { display: grid; gap: .5rem; margin-bottom: 1.5rem; }
+input, button { font: inherit; padding: .5rem; }
+ul { list-style: none; padding: 0; }
+li { padding: .6rem 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; gap: 1rem; }
+.due { color: #b00020; font-weight: 600; }
+small { color: #666; display: block; }
+button.x { background: none; border: 0; cursor: pointer; color: #888; }
+#days { width: 4rem; }
