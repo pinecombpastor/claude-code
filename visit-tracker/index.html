@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visit Tracker</title>
+<style>
+  body { font: 16px/1.4 system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; }
+  form { display: grid; gap: .5rem; margin-bottom: 1.5rem; }
+  input, button { font: inherit; padding: .5rem; }
+  ul { list-style: none; padding: 0; }
+  li { padding: .6rem 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; gap: 1rem; }
+  .due { color: #b00020; font-weight: 600; }
+  small { color: #666; display: block; }
+  button.x { background: none; border: 0; cursor: pointer; color: #888; }
+</style>
+</head>
+<body>
+<h1>Visit Tracker</h1>
+<form id="f">
+  <input id="name" placeholder="Name" required>
+  <input id="date" type="date" required>
+  <input id="note" placeholder="Short note (keep it non-sensitive)">
+  <button>Log visit</button>
+</form>
+<label>Flag after <input id="days" type="number" value="30" min="1" style="width:4rem"> days</label>
+<ul id="list"></ul>
+<script>
+const KEY = "visits";
+const $ = id => document.getElementById(id);
+let visits = JSON.parse(localStorage.getItem(KEY) || "[]");
+$("date").valueAsDate = new Date();
+
+function save() { localStorage.setItem(KEY, JSON.stringify(visits)); render(); }
+function daysSince(d) { return Math.floor((Date.now() - new Date(d + "T00:00")) / 864e5); }
+
+function render() {
+  const latest = {};
+  visits.forEach(v => { if (!latest[v.name] || v.date > latest[v.name].date) latest[v.name] = v; });
+  const limit = +$("days").value;
+  $("list").innerHTML = Object.values(latest)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(v => {
+      const n = daysSince(v.date);
+      return `<li><span>${esc(v.name)}<small>${esc(v.note || "")}</small></span>
+        <span class="${n >= limit ? "due" : ""}">${n}d ago
+        <button class="x" data-n="${esc(v.name)}" title="Remove">✕</button></span></li>`;
+    }).join("");
+}
+function esc(s) { return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+$("f").onsubmit = e => {
+  e.preventDefault();
+  visits.push({ name: $("name").value.trim(), date: $("date").value, note: $("note").value.trim() });
+  $("name").value = $("note").value = "";
+  save();
+};
+$("days").oninput = render;
+$("list").onclick = e => {
+  const n = e.target.dataset.n;
+  if (n && confirm("Remove " + n + " and all their visits?")) { visits = visits.filter(v => v.name !== n); save(); }
+};
+render();
+</script>
+</body>
+</html>
